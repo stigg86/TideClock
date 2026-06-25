@@ -314,18 +314,41 @@ class TideClockService : LifecycleService() {
         displayPaint.alpha = 180
         canvas.drawText(dateText, cx, cy + radius * 0.28f, displayPaint)
         
-        // Wave data
-        val waveHeight = waveData?.optJSONArray("wave_height")?.optDouble(0) ?: 0.7
-        val wavePeriod = waveData?.optJSONArray("wave_period")?.optDouble(0) ?: 6.8
+        // Calculate current tide height in feet
+        var tideHeightFt = 0.0
+        var tideStatus = ""
+        if (extrema != null && extrema.length() >= 2) {
+            val heights = mutableListOf<Double>()
+            val times = mutableListOf<Long>()
+            for (i in 0 until extrema.length()) {
+                extrema.optJSONObject(i)?.let { obj ->
+                    obj.optDouble("height").takeIf { it > 0 }?.let { h -> heights.add(h) }
+                }
+            }
+            if (heights.size >= 2) {
+                // Simple display: show next tide height
+                tideHeightFt = heights.getOrNull(0) ?: 0.0
+                tideStatus = if (extrema.optJSONObject(0)?.optBoolean("isHigh") == true) "HIGH" else "LOW"
+                tideHeightFt *= 3.28084 // Convert to feet
+            }
+        }
         
-        val waveText = String.format("%.1fft", waveHeight * 3.28084)
+        val tideText = String.format("%.1fft %s", tideHeightFt, tideStatus)
+        
         val infoPaint = Paint().apply {
             color = Color.parseColor("#00b4dc")
             textSize = radius * 0.12f
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-        canvas.drawText("Waves: $waveText", cx, cy + radius * 0.95f, infoPaint)
+        canvas.drawText(tideText, cx, cy + radius * 0.75f, infoPaint)
+        
+        // Wave data
+        val waveHeight = waveData?.optJSONArray("wave_height")?.optDouble(0) ?: 0.7
+        val wavePeriod = waveData?.optJSONArray("wave_period")?.optDouble(0) ?: 6.8
+        
+        val waveText = String.format("%.1fft @ %.1fs", waveHeight * 3.28084, wavePeriod)
+        canvas.drawText(waveText, cx, cy + radius * 0.95f, infoPaint)
         
         return bitmap
     }
