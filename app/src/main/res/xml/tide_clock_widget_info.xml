@@ -6,5 +6,5 @@
     android:initialLayout="@layout/widget_layout"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:previewImage="@drawable/ic_launcher_foreground"
+    android:configure="com.tideclock.widget.TideClockConfig"
     android:description="@string/widget_description" />

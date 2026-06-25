@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -13,11 +14,12 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
 import android.location.Location
-import android.os.IBinder
-import android.view.WindowManager
-import android.widget.RemoteViews
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,6 +56,12 @@ class TideClockWidget : AppWidgetProvider() {
 class TideClockService : LifecycleService() {
     
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
+    private lateinit var prefs: SharedPreferences
+    
+    override fun onCreate() {
+        super.onCreate()
+        prefs = getSharedPreferences("tideclock", MODE_PRIVATE)
+    }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         appWidgetId = intent?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID) 
@@ -79,9 +87,9 @@ class TideClockService : LifecycleService() {
     
     private fun fetchDataAndRenderWidget(): Bitmap? {
         return try {
-            // Get location (mock for now - in real app would use FusedLocationProvider)
-            val lat = 28.37 // Tenerife
-            val lon = -16.71
+            // Get location from SharedPreferences or use default
+            val lat = if (prefs.contains("lat")) prefs.getFloat("lat", 28.37f).toDouble() else 28.37
+            val lon = if (prefs.contains("lon")) prefs.getFloat("lon", -16.71f).toDouble() else -16.71
             
             // Fetch tide data from TideTurtle
             val tideData = fetchTideData(lat, lon)
