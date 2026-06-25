@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tide Clock</string>
+    <string name="widget_name">Tide Clock</string>
+    <string name="widget_description">A beautiful tide clock showing current tide, wave data, and more.</string>
+</resources>
